@@ -36,7 +36,7 @@ information in [Support and Feedback](#support-and-feedback).
 | [abap-sdk-nwas-x](https://github.com/IBM/abap-sdk-nwas-x) | **abap-sdk-btp-x** |
 |---|---|
 | for SAP NetWeaver<sup>®</sup> AS ABAP 7.50+ | for SAP BTP ABAP Environment |
-| tested on SAP Business Suite and SAP S/4HANA on-premises edition | tested with SAP BTP ABAP Environment 2402 |
+| tested on SAP Business Suite and SAP S/4HANA on-premises edition | tested with SAP BTP ABAP Environment 2405 |
 |  | `this repository` |
 
 ---
@@ -45,7 +45,7 @@ information in [Support and Feedback](#support-and-feedback).
   <summary>Table of Contents</summary>
 
 - [Announcements](#announcements)
-  - [Major version 1.0.0 released](#major-version-100-released)
+  - [Version 1.1.0 released](#version-110-released)
 - [Before you begin](#before-you-begin)
 - [Installation](#installation)
 - [SSL Certificates](#ssl-certificates)
@@ -62,9 +62,10 @@ information in [Support and Feedback](#support-and-feedback).
 
 ## Announcements
 
-### Major version 1.0.0 released
+### Version 1.1.0 released
 
-Version v1.0.0 of the SDK has been released.
+Version v1.1.0 of the SDK has been released - see what's changed in
+the [migration guide](MIGRATION-V1.1.0.md).
 
 ## Before you begin
 
@@ -160,7 +161,7 @@ called again with a new (refreshed) bearer-token as parameter.
 ## Usage
 
 The client library is delivered as package *ZIBMX*. Once the Git
-Repository has been cloned to the SAP system, a watsonx service
+repository has been cloned to the SAP system, a watsonx service
 instance is wrapped by an ABAP class instance.<br> The following
 watsonx services are currently supported:
 

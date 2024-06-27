@@ -82,6 +82,19 @@ CLASS ZCL_IBMX_SERVICE_ARCH DEFINITION
         !e_client       TYPE ts_client
       RAISING
         ZCX_IBMX_SERVICE_EXCEPTION .
+    "! <p class="shorttext synchronized" lang="en">Returns a HTTP/REST client based on an DESTINATION.</p>
+    "!
+    "! @parameter I_REQUEST_PROP | Request parameters
+    "! @parameter E_CLIENT | HTTP/REST client
+    "! @raising ZCX_IBMX_SERVICE_EXCEPTION | Exception being raised in case of an error.
+    "!
+    CLASS-METHODS create_client_by_destination
+      IMPORTING
+        !i_request_prop TYPE ts_request_prop
+      EXPORTING
+        !e_client       TYPE ts_client
+      RAISING
+        ZCX_IBMX_service_exception .
     "! <p class="shorttext synchronized" lang="en">Returns the default proxy host and port.</p>
     "!
     "! @parameter I_URL | target URL
@@ -298,7 +311,32 @@ CLASS ZCL_IBMX_SERVICE_ARCH IMPLEMENTATION.
     TRY.
         "create http destination by url
         DATA(lo_http_destination) =
-         cl_http_destination_provider=>create_by_url( i_url ).
+          cl_http_destination_provider=>create_by_url( i_url ).
+      CATCH cx_http_dest_provider_error.
+    ENDTRY.
+
+    "create HTTP client by destination
+    TRY.
+        e_client-http = cl_web_http_client_manager=>create_by_http_destination( lo_http_destination ) .
+      CATCH cx_web_http_client_error.
+        lv_text = `HTTP client cannot be created: ` && lv_text  ##NO_TEXT.
+        ZCL_IBMX_SERVICE=>raise_exception( i_text = lv_text ).
+    ENDTRY.
+
+    e_client-request = e_client-http->get_http_request( ).
+
+  ENDMETHOD.
+
+
+  METHOD create_client_by_destination.
+
+    DATA:
+      lv_text TYPE string.
+
+    TRY.
+        "get http destination
+        DATA(lo_http_destination) =
+          cl_http_destination_provider=>create_by_destination( i_request_prop-destination ).
       CATCH cx_http_dest_provider_error.
     ENDTRY.
 

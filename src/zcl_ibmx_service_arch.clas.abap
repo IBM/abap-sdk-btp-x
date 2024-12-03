@@ -67,6 +67,16 @@ CLASS ZCL_IBMX_SERVICE_ARCH DEFINITION
         VALUE(e_binary) TYPE xstring
       RAISING
         ZCX_IBMX_SERVICE_EXCEPTION .
+    "! <p class="shorttext synchronized" lang="en">Encodes a string to base64 format.</p>
+    "!
+    "! @parameter I_UNENCODED | String, unencoded
+    "! @parameter E_ENCODED | Base64-encoded string
+    "!
+    class-methods base64_encode
+      importing
+        !i_unencoded type string
+      returning
+        value(e_encoded) type string .
     "! <p class="shorttext synchronized" lang="en">Returns a HTTP/REST client based on an URL.</p>
     "!
     "! @parameter I_URL | URL
@@ -283,6 +293,22 @@ CLASS ZCL_IBMX_SERVICE_ARCH IMPLEMENTATION.
 *    if sy-subrc <> 0.
 *      ZCL_IBMX_SERVICE=>raise_exception( i_msgno = '030' ).  " Decoding of base64 string failed
 *    endif.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_IBMX_SERVICE_ARCH=>BASE64_ENCODE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] I_UNENCODED                    TYPE        STRING
+* | [<-()] E_ENCODED                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD base64_encode.
+
+    e_encoded = cl_web_http_utility=>encode_base64(
+      exporting
+        unencoded = i_unencoded
+    ).
 
   ENDMETHOD.
 
@@ -527,7 +553,7 @@ CLASS ZCL_IBMX_SERVICE_ARCH IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Static Public Method ZCL_IBMC_SERVICE_ARCH=>FIND_REGEX
+* | Static Public Method ZCL_IBMX_SERVICE_ARCH=>FIND_REGEX
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] I_REGEX                        TYPE        STRING
 * | [--->] I_WITH                         TYPE        STRING(optional)

@@ -1,4 +1,4 @@
-* Copyright 2019, 2024 IBM Corp. All Rights Reserved.
+* Copyright 2019, 2025 IBM Corp. All Rights Reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -99,6 +99,19 @@ CLASS ZCL_IBMX_SERVICE_ARCH DEFINITION
     "! @raising ZCX_IBMX_SERVICE_EXCEPTION | Exception being raised in case of an error.
     "!
     CLASS-METHODS create_client_by_destination
+      IMPORTING
+        !i_request_prop TYPE ts_request_prop
+      EXPORTING
+        !e_client       TYPE ts_client
+      RAISING
+        ZCX_IBMX_service_exception .
+    "! <p class="shorttext synchronized" lang="en">Returns a HTTP/REST client based on COMMUNICATION SCENARIO.</p>
+    "!
+    "! @parameter I_REQUEST_PROP | Request parameters
+    "! @parameter E_CLIENT | HTTP/REST client
+    "! @raising ZCX_IBMX_SERVICE_EXCEPTION | Exception being raised in case of an error.
+    "!
+    CLASS-METHODS create_client_by_scenario
       IMPORTING
         !i_request_prop TYPE ts_request_prop
       EXPORTING
@@ -279,6 +292,13 @@ CLASS ZCL_IBMX_SERVICE_ARCH DEFINITION
         VALUE(e_subrc)     TYPE sysubrc .
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CLASS-METHODS create_client_by_http_dest
+      IMPORTING
+        !i_http_destination type ref to if_http_destination
+      RETURNING
+        !VALUE(e_client)    type ts_client
+      RAISING
+        ZCX_IBMX_service_exception .
 ENDCLASS.
 
 
@@ -330,52 +350,57 @@ CLASS ZCL_IBMX_SERVICE_ARCH IMPLEMENTATION.
 
 
   METHOD create_client_by_url.
-
-    DATA:
-      lv_text TYPE string.
-
     TRY.
-        "create http destination by url
+        " create HTTP destination by URL
         DATA(lo_http_destination) =
           cl_http_destination_provider=>create_by_url( i_url ).
-      CATCH cx_http_dest_provider_error.
-    ENDTRY.
-
-    "create HTTP client by destination
-    TRY.
-        e_client-http = cl_web_http_client_manager=>create_by_http_destination( lo_http_destination ) .
-      CATCH cx_web_http_client_error.
-        lv_text = `HTTP client cannot be created: ` && lv_text  ##NO_TEXT.
+      CATCH cx_http_dest_provider_error INTO DATA(lr_excp1).
+        DATA(lv_text) = lr_excp1->get_text( ).
+        lv_text = `Invalid url: ` && lv_text  ##NO_TEXT.
         ZCL_IBMX_SERVICE=>raise_exception( i_text = lv_text ).
     ENDTRY.
-
-    e_client-request = e_client-http->get_http_request( ).
-
+    e_client = create_client_by_http_dest( lo_http_destination ).
   ENDMETHOD.
 
 
   METHOD create_client_by_destination.
-
-    DATA:
-      lv_text TYPE string.
-
     TRY.
-        "get http destination
+        " get HTTP destination by SAP destination
         DATA(lo_http_destination) =
           cl_http_destination_provider=>create_by_destination( i_request_prop-destination ).
-      CATCH cx_http_dest_provider_error.
+      CATCH cx_http_dest_provider_error INTO DATA(lr_excp1).
+        DATA(lv_text) = lr_excp1->get_text( ).
+        lv_text = `Destination ` && i_request_prop-destination && ` not found:` && lv_text  ##NO_TEXT.
+        ZCL_IBMX_SERVICE=>raise_exception( i_text = lv_text ).
     ENDTRY.
+    e_client = create_client_by_http_dest( lo_http_destination ).
+  ENDMETHOD.
 
-    "create HTTP client by destination
+
+  METHOD create_client_by_scenario.
     TRY.
-        e_client-http = cl_web_http_client_manager=>create_by_http_destination( lo_http_destination ) .
-      CATCH cx_web_http_client_error.
+        " get HTTP destination by communication scenario
+        DATA(lo_http_destination) =
+          cl_http_destination_provider=>create_by_comm_arrangement( comm_scenario = i_request_prop-scenario ).
+      CATCH cx_http_dest_provider_error INTO DATA(lr_excp1).
+        DATA(lv_text) = lr_excp1->get_text( ).
+        lv_text = `Communication scenario ` && i_request_prop-scenario && ` not found:` && lv_text  ##NO_TEXT.
+        ZCL_IBMX_SERVICE=>raise_exception( i_text = lv_text ).
+    ENDTRY.
+    e_client = create_client_by_http_dest( lo_http_destination ).
+  ENDMETHOD.
+
+
+  METHOD create_client_by_http_dest.
+      TRY.
+        e_client-http = cl_web_http_client_manager=>create_by_http_destination( i_http_destination ) .
+      CATCH cx_web_http_client_error INTO DATA(lr_excp2).
+        DATA(lv_text) = lr_excp2->get_text( ).
         lv_text = `HTTP client cannot be created: ` && lv_text  ##NO_TEXT.
         ZCL_IBMX_SERVICE=>raise_exception( i_text = lv_text ).
     ENDTRY.
 
     e_client-request = e_client-http->get_http_request( ).
-
   ENDMETHOD.
 
 
